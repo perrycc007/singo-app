@@ -1,65 +1,63 @@
 "use client";
-import React, { useState } from "react";
+
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import VocabularyTranslationPractice from "../components/VocabularyTranslationPractice";
-import VocabularyPronunciationPractice from "../components/VocabularyPronunciationPractice";
-import SentenceTranslationPractice from "../components/SentenceTranslationPractice";
-import SentencePronunciationPractice from "../components/SentencePronunciationPractice";
-import VocabularyListeningPractice from "../components/VocabularyListeningPractice";
-import SentenceListeningPractice from "../components/SentenceListeningPractice";
-import { SongData } from "./types";
-import "tailwindcss/tailwind.css";
+import { useRouter } from "next/navigation";
 
 const Home: React.FC = () => {
   const [lyrics, setLyrics] = useState<string>("");
-  const [songData, setSongData] = useState<SongData | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) return null;
+
+  const router = useRouter();
 
   const handleLyricsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setLyrics(e.target.value);
   };
 
   const handleGenerateData = async () => {
-    const response = await axios.post<SongData>(
+    const response = await axios.post<{ songUrl: string }>(
       `${process.env.NEXT_PUBLIC_API_URL}/openai-tts/generate`,
-      {
-        lyrics,
-      }
+      { lyrics }
     );
-    setSongData(response.data);
+    router.push(response.data.songUrl);
   };
 
   return (
-    <div className="min-h-screen bg-black-100 flex flex-col items-center justify-center p-4">
-      <h1 className="text-4xl font-bold mb-4 text-center">
-        Japanese Song Learning App
-      </h1>
-      <textarea
-        value={lyrics}
-        onChange={handleLyricsChange}
-        placeholder="Enter Japanese lyrics"
-        className="w-full max-w-md p-2 bg-black-100 border border-gray-00 rounded-md mb-4"
-      />
-      <button
-        onClick={handleGenerateData}
-        className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-      >
-        Generate Data
-      </button>
-      {songData && (
-        <div className="mt-8 w-full max-w-3xl bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold mb-4 text-center">
-            {songData.song.title} by {songData.song.artist}
-          </h2>
-          <div className="space-y-4">
-            <VocabularyTranslationPractice lyrics={songData.song.lyrics} />
-            <VocabularyPronunciationPractice lyrics={songData.song.lyrics} />
-            <SentenceTranslationPractice lyrics={songData.song.lyrics} />
-            <SentencePronunciationPractice lyrics={songData.song.lyrics} />
-            <VocabularyListeningPractice lyrics={songData.song.lyrics} />
-            <SentenceListeningPractice lyrics={songData.song.lyrics} />
-          </div>
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
+      <header className="bg-blue-600 w-full py-4 shadow-md">
+        <h1 className="text-3xl font-bold text-white text-center">
+          Japanese Song Learning App
+        </h1>
+      </header>
+      <main className="flex-grow flex flex-col items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl">
+          <h2 className="text-2xl font-semibold mb-4">Enter Japanese Lyrics</h2>
+          <textarea
+            value={lyrics}
+            onChange={handleLyricsChange}
+            placeholder="Enter Japanese lyrics"
+            className="w-full p-2 border border-gray-300 rounded-md mb-4"
+            rows={6}
+          />
+          <button
+            onClick={handleGenerateData}
+            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-300"
+          >
+            Generate Data
+          </button>
         </div>
-      )}
+      </main>
+      <footer className="w-full py-4 bg-gray-800">
+        <p className="text-center text-white">
+          &copy; {new Date().getFullYear()} Japanese Song Learning App
+        </p>
+      </footer>
     </div>
   );
 };

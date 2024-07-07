@@ -1,3 +1,4 @@
+/* styles/globals.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -17,7 +18,7 @@
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
+  color: black;
   background: linear-gradient(
       to bottom,
       transparent,

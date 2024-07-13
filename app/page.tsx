@@ -18,7 +18,7 @@ const Home: React.FC = () => {
       `${process.env.NEXT_PUBLIC_API_URL}/openai-tts/generate`,
       { lyrics }
     );
-    router.push(response.data.songUrl);
+    router.push("/dashboard");
   };
 
   return (

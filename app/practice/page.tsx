@@ -1,16 +1,24 @@
-"use client";
 // pages/practice.tsx
+"use client";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Question } from "@/types";
 import QuestionComponent from "@/components/Practice/QuestionComponent";
 import { useStore } from "@/store";
+
+interface QuestionResult {
+  questionId: number;
+  wrongFrequency: number;
+  frequency: number;
+  lastEncounter: string;
+}
+
 const Practice: React.FC = () => {
   const { userId } = useStore();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
-  const router = useRouter();
+  const [questionResults, setQuestionResults] = useState<QuestionResult[]>([]);
   const [vocab, setVocab] = useState();
   const searchParams = useSearchParams();
   const songId = searchParams.get("songId");
@@ -23,7 +31,6 @@ const Practice: React.FC = () => {
         `${process.env.NEXT_PUBLIC_API_URL}/learning/get-practice`,
         { songId: songId, level: level, step: step }
       );
-      console.log(response.data.questions);
       setQuestions(response.data.questions);
       setVocab(response.data.vocabulary);
     };
@@ -32,6 +39,38 @@ const Practice: React.FC = () => {
       fetchQuestions();
     }
   }, [songId, level, step]);
+
+  const handleCheckAnswer = (questionId: number, isCorrect: boolean) => {
+    const now = new Date().toISOString();
+    setQuestionResults((prevResults) => {
+      const existingResult = prevResults.find(
+        (result) => result.questionId === questionId
+      );
+
+      if (existingResult) {
+        return prevResults.map((result) =>
+          result.questionId === questionId
+            ? {
+                ...result,
+                frequency: result.frequency + 1,
+                wrongFrequency: result.wrongFrequency + (isCorrect ? 0 : 1),
+                lastEncounter: now,
+              }
+            : result
+        );
+      } else {
+        return [
+          ...prevResults,
+          {
+            questionId: questionId,
+            wrongFrequency: isCorrect ? 0 : 1,
+            frequency: 1,
+            lastEncounter: now,
+          },
+        ];
+      }
+    });
+  };
 
   const handleNextQuestion = () => {
     setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
@@ -44,6 +83,7 @@ const Practice: React.FC = () => {
         <QuestionComponent
           question={questions[currentQuestionIndex]}
           vocabulary={vocab}
+          onCheck={handleCheckAnswer}
           onNext={handleNextQuestion}
         />
       ) : (

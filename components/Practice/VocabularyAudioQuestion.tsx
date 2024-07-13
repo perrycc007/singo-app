@@ -4,17 +4,21 @@ import { Question } from "@/types";
 
 interface VocabularyAudioQuestionProps {
   question: Question;
+  onCheck: (isCorrect: boolean) => void;
   onNext: () => void;
   vocabulary: any[];
 }
 
 const VocabularyAudioQuestion: React.FC<VocabularyAudioQuestionProps> = ({
   question,
-  vocabulary,
+  onCheck,
   onNext,
+  vocabulary,
 }) => {
   const [selectedOption, setSelectedOption] = useState<string>("");
   const [options, setOptions] = useState<string[]>([]);
+  const [showNextButton, setShowNextButton] = useState(false);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
   const getRandomElements = (array: any[], count: number) => {
     const shuffled = [...array].sort(() => 0.5 - Math.random());
@@ -22,16 +26,15 @@ const VocabularyAudioQuestion: React.FC<VocabularyAudioQuestionProps> = ({
   };
 
   useEffect(() => {
-    // Generate multiple-choice options
-    if (question.type === "vocabulary-audio") {
-      const correctAnswer = question.Vocabulary.meaning;
+    if (question.type === "vocabulary-pronunciation") {
+      const correctAnswer = question.Vocabulary.pronunciation;
+
       if (correctAnswer) {
         const similarLengthOptions = getRandomElements(
-          vocabulary.filter((vocab) => vocab.meaning !== correctAnswer),
+          vocabulary.filter((vocab) => vocab.pronunciation !== correctAnswer),
           3
-        ).map((vocab) => vocab.meaning);
+        ).map((vocab) => vocab.pronunciation);
 
-        // Ensure options only contain one correct answer
         const uniqueOptions = Array.from(
           new Set([...similarLengthOptions, correctAnswer])
         ).sort(() => Math.random() - 0.5);
@@ -40,10 +43,16 @@ const VocabularyAudioQuestion: React.FC<VocabularyAudioQuestionProps> = ({
     }
   }, [question, vocabulary]);
 
-  const handleSubmit = () => {
-    // Handle answer submission logic here
-    const isCorrect = selectedOption === question.correctAnswer;
-    // Add submission logic to send `isCorrect` status to the backend or track it
+  const handleCheck = () => {
+    const isAnswerCorrect = selectedOption === question.correctAnswer;
+    setIsCorrect(isAnswerCorrect);
+    onCheck(isAnswerCorrect);
+    setShowNextButton(true);
+  };
+
+  const handleNext = () => {
+    setShowNextButton(false);
+    setIsCorrect(null);
     onNext();
   };
 
@@ -67,13 +76,31 @@ const VocabularyAudioQuestion: React.FC<VocabularyAudioQuestionProps> = ({
           </label>
         </div>
       ))}
-      <button
-        onClick={handleSubmit}
-        className="mt-2 p-2 bg-blue-500 text-white rounded"
-        disabled={!selectedOption}
-      >
-        Next
-      </button>
+      {isCorrect !== null && (
+        <div
+          className={`mt-2 p-2 rounded ${
+            isCorrect ? "bg-green-200" : "bg-red-200"
+          }`}
+        >
+          {isCorrect ? "Correct!" : "Incorrect."}
+        </div>
+      )}
+      {showNextButton ? (
+        <button
+          onClick={handleNext}
+          className="mt-2 p-2 bg-blue-500 text-white rounded"
+        >
+          Next
+        </button>
+      ) : (
+        <button
+          onClick={handleCheck}
+          className="mt-2 p-2 bg-blue-500 text-white rounded"
+          disabled={!selectedOption}
+        >
+          Check
+        </button>
+      )}
     </div>
   );
 };

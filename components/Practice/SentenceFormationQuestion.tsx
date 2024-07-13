@@ -4,17 +4,21 @@ import { Question, Vocabulary } from "@/types";
 
 interface SentenceFormationQuestionProps {
   question: Question;
+  onCheck: (isCorrect: boolean) => void;
   onNext: () => void;
   vocabulary: Vocabulary[];
 }
 
 const SentenceFormationQuestion: React.FC<SentenceFormationQuestionProps> = ({
   question,
-  vocabulary,
+  onCheck,
   onNext,
+  vocabulary,
 }) => {
   const [sentenceWords, setSentenceWords] = useState<string[]>([]);
   const [options, setOptions] = useState<string[]>([]);
+  const [showNextButton, setShowNextButton] = useState(false);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
   useEffect(() => {
     // Shuffle and prepare options
@@ -51,10 +55,19 @@ const SentenceFormationQuestion: React.FC<SentenceFormationQuestionProps> = ({
     setOptions([...options, word]);
   };
 
-  const handleSubmit = () => {
+  const handleCheck = () => {
     const userAnswer = sentenceWords.join(" ");
-    const isCorrect = userAnswer === question.correctAnswer;
-    // Handle answer submission logic here
+    const isAnswerCorrect = userAnswer === question.correctAnswer;
+    setIsCorrect(isAnswerCorrect);
+    onCheck(isAnswerCorrect);
+    setShowNextButton(true);
+  };
+
+  const handleNext = () => {
+    setShowNextButton(false);
+    setIsCorrect(null);
+    setSentenceWords([]);
+    setOptions([]);
     onNext();
   };
 
@@ -88,13 +101,31 @@ const SentenceFormationQuestion: React.FC<SentenceFormationQuestionProps> = ({
           </div>
         ))}
       </div>
-      <button
-        onClick={handleSubmit}
-        className="mt-2 p-2 bg-blue-500 text-white rounded"
-        disabled={sentenceWords.length === 0}
-      >
-        Next
-      </button>
+      {isCorrect !== null && (
+        <div
+          className={`mt-2 p-2 rounded ${
+            isCorrect ? "bg-green-200" : "bg-red-200"
+          }`}
+        >
+          {isCorrect ? "Correct!" : "Incorrect."}
+        </div>
+      )}
+      {showNextButton ? (
+        <button
+          onClick={handleNext}
+          className="mt-2 p-2 bg-blue-500 text-white rounded"
+        >
+          Next
+        </button>
+      ) : (
+        <button
+          onClick={handleCheck}
+          className="mt-2 p-2 bg-blue-500 text-white rounded"
+          disabled={sentenceWords.length === 0}
+        >
+          Check
+        </button>
+      )}
     </div>
   );
 };

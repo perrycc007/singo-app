@@ -12,20 +12,27 @@ import VocabularyWordQuestion from "./VocabularyWordQuestion";
 interface QuestionComponentProps {
   question: Question;
   vocabulary: any;
+  onCheck: (questionId: number, isCorrect: boolean) => void;
   onNext: () => void;
 }
 
 const QuestionComponent: React.FC<QuestionComponentProps> = ({
   question,
   vocabulary,
+  onCheck,
   onNext,
 }) => {
+  const handleCheck = (isCorrect: boolean) => {
+    onCheck(question.id, isCorrect);
+  };
+
   switch (question.type) {
     case "sentence-formation-translation":
       return (
         <TranslationQuestion
           question={question}
           vocabulary={vocabulary}
+          onCheck={handleCheck}
           onNext={onNext}
         />
       );
@@ -34,6 +41,7 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
         <MeaningQuestion
           question={question}
           vocabulary={vocabulary}
+          onCheck={handleCheck}
           onNext={onNext}
         />
       );
@@ -42,6 +50,7 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
         <SentenceFormationQuestion
           question={question}
           vocabulary={vocabulary}
+          onCheck={handleCheck}
           onNext={onNext}
         />
       );
@@ -50,6 +59,7 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
         <VocabularyMeaningQuestion
           question={question}
           vocabulary={vocabulary}
+          onCheck={handleCheck}
           onNext={onNext}
         />
       );
@@ -58,6 +68,7 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
         <VocabularyPronunciationQuestion
           question={question}
           vocabulary={vocabulary}
+          onCheck={handleCheck}
           onNext={onNext}
         />
       );
@@ -66,6 +77,7 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
         <VocabularyAudioQuestion
           question={question}
           vocabulary={vocabulary}
+          onCheck={handleCheck}
           onNext={onNext}
         />
       );
@@ -74,6 +86,7 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
         <VocabularyWordQuestion
           question={question}
           vocabulary={vocabulary}
+          onCheck={handleCheck}
           onNext={onNext}
         />
       );

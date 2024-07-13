@@ -4,17 +4,21 @@ import { Question } from "@/types";
 
 interface VocabularyAudioQuestionProps {
   question: Question;
+  onCheck: (isCorrect: boolean) => void;
   onNext: () => void;
   vocabulary: any[];
 }
 
 const VocabularyAudioQuestion: React.FC<VocabularyAudioQuestionProps> = ({
   question,
-  vocabulary,
+  onCheck,
   onNext,
+  vocabulary,
 }) => {
   const [selectedOption, setSelectedOption] = useState<string>("");
   const [options, setOptions] = useState<string[]>([]);
+  const [showNextButton, setShowNextButton] = useState(false);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
   const getRandomElements = (array: any[], count: number) => {
     const shuffled = [...array].sort(() => 0.5 - Math.random());
@@ -41,16 +45,29 @@ const VocabularyAudioQuestion: React.FC<VocabularyAudioQuestionProps> = ({
     }
   }, [question, vocabulary]);
 
-  const handleSubmit = () => {
-    const isCorrect = selectedOption === question.correctAnswer;
-    // Handle answer submission logic here
+  const handleCheck = () => {
+    const isAnswerCorrect = selectedOption === question.correctAnswer;
+    setIsCorrect(isAnswerCorrect);
+    onCheck(isAnswerCorrect);
+    setShowNextButton(true);
+  };
+
+  const handleNext = () => {
+    setShowNextButton(false);
+    setIsCorrect(null);
+    setSelectedOption("");
+    setOptions([]);
     onNext();
   };
 
   return (
     <div className="p-4 mb-4 bg-white shadow rounded">
       <p>{question.text}</p>
-
+      {question.audioUrl && (
+        <audio controls src={question.audioUrl}>
+          Your browser does not support the audio element.
+        </audio>
+      )}
       {options.map((option, index) => (
         <div key={index} className="mt-2">
           <label className="inline-flex items-center">
@@ -65,13 +82,31 @@ const VocabularyAudioQuestion: React.FC<VocabularyAudioQuestionProps> = ({
           </label>
         </div>
       ))}
-      <button
-        onClick={handleSubmit}
-        className="mt-2 p-2 bg-blue-500 text-white rounded"
-        disabled={!selectedOption}
-      >
-        Next
-      </button>
+      {isCorrect !== null && (
+        <div
+          className={`mt-2 p-2 rounded ${
+            isCorrect ? "bg-green-200" : "bg-red-200"
+          }`}
+        >
+          {isCorrect ? "Correct!" : "Incorrect."}
+        </div>
+      )}
+      {showNextButton ? (
+        <button
+          onClick={handleNext}
+          className="mt-2 p-2 bg-blue-500 text-white rounded"
+        >
+          Next
+        </button>
+      ) : (
+        <button
+          onClick={handleCheck}
+          className="mt-2 p-2 bg-blue-500 text-white rounded"
+          disabled={!selectedOption}
+        >
+          Check
+        </button>
+      )}
     </div>
   );
 };

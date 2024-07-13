@@ -4,18 +4,21 @@ import { Question } from "@/types";
 
 interface VocabularyWordQuestionProps {
   question: Question;
+  onCheck: (isCorrect: boolean) => void;
   onNext: () => void;
   vocabulary: any[];
 }
 
 const VocabularyWordQuestion: React.FC<VocabularyWordQuestionProps> = ({
   question,
-  vocabulary,
+  onCheck,
   onNext,
+  vocabulary,
 }) => {
-  const [answer, setAnswer] = useState("");
-  const [options, setOptions] = useState<string[]>([]);
   const [selectedOption, setSelectedOption] = useState<string>("");
+  const [options, setOptions] = useState<string[]>([]);
+  const [showNextButton, setShowNextButton] = useState(false);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
   useEffect(() => {
     // Generate multiple-choice options
@@ -28,7 +31,7 @@ const VocabularyWordQuestion: React.FC<VocabularyWordQuestionProps> = ({
       };
       if (correctAnswer) {
         const similarLengthOptions = getRandomElements(
-          vocabulary.filter((vocab) => vocab.pronunciation !== correctAnswer),
+          vocabulary.filter((vocab) => vocab.meaning !== correctAnswer),
           3
         ).map((vocab) => vocab.meaning);
 
@@ -41,10 +44,17 @@ const VocabularyWordQuestion: React.FC<VocabularyWordQuestionProps> = ({
     }
   }, [question, vocabulary]);
 
-  const handleSubmit = () => {
-    // Handle answer submission logic here
-    const isCorrect = selectedOption === question.correctAnswer;
-    // Add submission logic to send `isCorrect` status to the backend or track it
+  const handleCheck = () => {
+    const isAnswerCorrect = selectedOption === question.correctAnswer;
+    setIsCorrect(isAnswerCorrect);
+    onCheck(isAnswerCorrect);
+    setShowNextButton(true);
+  };
+
+  const handleNext = () => {
+    setShowNextButton(false);
+    setIsCorrect(null);
+    setSelectedOption("");
     onNext();
   };
 
@@ -65,13 +75,31 @@ const VocabularyWordQuestion: React.FC<VocabularyWordQuestionProps> = ({
           </label>
         </div>
       ))}
-      <button
-        onClick={handleSubmit}
-        className="mt-2 p-2 bg-blue-500 text-white rounded"
-        disabled={!selectedOption}
-      >
-        Next
-      </button>
+      {isCorrect !== null && (
+        <div
+          className={`mt-2 p-2 rounded ${
+            isCorrect ? "bg-green-200" : "bg-red-200"
+          }`}
+        >
+          {isCorrect ? "Correct!" : "Incorrect."}
+        </div>
+      )}
+      {showNextButton ? (
+        <button
+          onClick={handleNext}
+          className="mt-2 p-2 bg-blue-500 text-white rounded"
+        >
+          Next
+        </button>
+      ) : (
+        <button
+          onClick={handleCheck}
+          className="mt-2 p-2 bg-blue-500 text-white rounded"
+          disabled={!selectedOption}
+        >
+          Check
+        </button>
+      )}
     </div>
   );
 };

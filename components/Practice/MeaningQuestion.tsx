@@ -4,17 +4,21 @@ import { Question, Vocabulary } from "@/types";
 
 interface MeaningQuestionProps {
   question: Question;
+  onCheck: (isCorrect: boolean) => void;
   onNext: () => void;
   vocabulary: Vocabulary[];
 }
 
 const MeaningQuestion: React.FC<MeaningQuestionProps> = ({
   question,
-  vocabulary,
+  onCheck,
   onNext,
+  vocabulary,
 }) => {
   const [collectedWords, setCollectedWords] = useState<string[]>([]);
   const [options, setOptions] = useState<string[]>([]);
+  const [showNextButton, setShowNextButton] = useState(false);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
   useEffect(() => {
     // Break down the correct answer into smaller parts
@@ -51,13 +55,19 @@ const MeaningQuestion: React.FC<MeaningQuestionProps> = ({
     setOptions([...options, word]);
   };
 
-  const handleSubmit = () => {
+  const handleCheck = () => {
     const userAnswer = collectedWords.join(" ");
-    if (userAnswer === question.correctAnswer) {
-      // Correct answer logic
-    } else {
-      // Incorrect answer logic
-    }
+    const isAnswerCorrect = userAnswer === question.correctAnswer;
+    setIsCorrect(isAnswerCorrect);
+    onCheck(isAnswerCorrect);
+    setShowNextButton(true);
+  };
+
+  const handleNext = () => {
+    setShowNextButton(false);
+    setIsCorrect(null);
+    setCollectedWords([]);
+    setOptions([]);
     onNext();
   };
 
@@ -86,13 +96,31 @@ const MeaningQuestion: React.FC<MeaningQuestionProps> = ({
           </div>
         ))}
       </div>
-      <button
-        onClick={handleSubmit}
-        className="mt-2 p-2 bg-blue-500 text-white rounded"
-        disabled={collectedWords.length === 0}
-      >
-        Next
-      </button>
+      {isCorrect !== null && (
+        <div
+          className={`mt-2 p-2 rounded ${
+            isCorrect ? "bg-green-200" : "bg-red-200"
+          }`}
+        >
+          {isCorrect ? "Correct!" : "Incorrect."}
+        </div>
+      )}
+      {showNextButton ? (
+        <button
+          onClick={handleNext}
+          className="mt-2 p-2 bg-blue-500 text-white rounded"
+        >
+          Next
+        </button>
+      ) : (
+        <button
+          onClick={handleCheck}
+          className="mt-2 p-2 bg-blue-500 text-white rounded"
+          disabled={collectedWords.length === 0}
+        >
+          Check
+        </button>
+      )}
     </div>
   );
 };

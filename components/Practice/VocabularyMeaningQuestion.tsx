@@ -4,28 +4,33 @@ import { Question } from "@/types";
 
 interface VocabularyMeaningQuestionProps {
   question: Question;
+  onCheck: (isCorrect: boolean) => void;
   onNext: () => void;
   vocabulary: any[];
 }
 
 const VocabularyMeaningQuestion: React.FC<VocabularyMeaningQuestionProps> = ({
   question,
-  vocabulary,
+  onCheck,
   onNext,
+  vocabulary,
 }) => {
   const [selectedOption, setSelectedOption] = useState<string>("");
   const [options, setOptions] = useState<string[]>([]);
+  const [showNextButton, setShowNextButton] = useState(false);
+
   const getRandomElements = (array: any[], count: number) => {
     const shuffled = [...array].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, count);
   };
+
   useEffect(() => {
     // Generate multiple-choice options
     if (question.type === "vocabulary-meaning") {
       const correctAnswer = question.Vocabulary.meaning;
       if (correctAnswer) {
         const similarLengthOptions = getRandomElements(
-          vocabulary.filter((vocab) => vocab.pronunciation !== correctAnswer),
+          vocabulary.filter((vocab) => vocab.meaning !== correctAnswer),
           3
         ).map((vocab) => vocab.meaning);
 
@@ -38,10 +43,13 @@ const VocabularyMeaningQuestion: React.FC<VocabularyMeaningQuestionProps> = ({
     }
   }, [question, vocabulary]);
 
-  const handleSubmit = () => {
-    // Handle answer submission logic here
+  const handleCheck = () => {
     const isCorrect = selectedOption === question.correctAnswer;
-    // Add submission logic to send `isCorrect` status to the backend or track it
+    onCheck(isCorrect);
+    setShowNextButton(true);
+  };
+
+  const handleNext = () => {
     onNext();
   };
 
@@ -62,13 +70,23 @@ const VocabularyMeaningQuestion: React.FC<VocabularyMeaningQuestionProps> = ({
           </label>
         </div>
       ))}
-      <button
-        onClick={handleSubmit}
-        className="mt-2 p-2 bg-blue-500 text-white rounded"
-        disabled={!selectedOption}
-      >
-        Next
-      </button>
+      {showNextButton ? (
+        <button
+          onClick={handleNext}
+          className="mt-2 p-2 bg-blue-500 text-white rounded"
+          disabled={!selectedOption}
+        >
+          Next
+        </button>
+      ) : (
+        <button
+          onClick={handleCheck}
+          className="mt-2 p-2 bg-blue-500 text-white rounded"
+          disabled={!selectedOption}
+        >
+          Check
+        </button>
+      )}
     </div>
   );
 };

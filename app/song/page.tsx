@@ -1,63 +1,147 @@
-// pages/songs.tsx
+// pages/songs/[songId].tsx
 "use client";
 import React, { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import axios from "axios";
-import { SongData, Level, Vocabulary, Sentence } from "../../types";
-import LevelComponent from "../../components/Level";
-import generateLevels from "@/utils/generateLevel";
-const SongPage: React.FC = () => {
-  const [songData, setSongData] = useState<SongData | null>(null);
-  const [levels, setLevels] = useState<Level[]>([]);
-  const [currentLevel, setCurrentLevel] = useState<number | null>(null);
+import { useRouter, useSearchParams } from "next/navigation";
+import { useStore } from "@/store";
+import { Song, Progress } from "@/types";
+import { getToken } from "@/utils/auth";
+import Modal from "@/components/Modal";
 
+const SongPage: React.FC = () => {
+  const { userId } = useStore();
+  const [song, setSong] = useState<Song | null>(null);
+  const [progress, setProgress] = useState<Progress | null>(null);
+  const [levels, setLevels] = useState<{ level: number; maxStep: number }[]>(
+    []
+  );
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalButtonLabel, setModalButtonLabel] = useState("");
+  const [modalButtonAction, setModalButtonAction] = useState<() => void>(
+    () => {}
+  );
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const id = searchParams.get("id");
+
+  const songId = searchParams.get("songId");
 
   useEffect(() => {
-    if (id) {
-      axios
-        .get<SongData>(`${process.env.NEXT_PUBLIC_API_URL}/songs/${id}`)
-        .then((response) => {
-          setSongData(response.data);
-          setLevels(generateLevels(response.data));
-        })
-        .catch((error) => {
-          console.error("Error fetching song data:", error);
-        });
-    }
-  }, [id]);
+    const token = getToken();
+    const fetchSongDetails = async () => {
+      console.log("run");
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/song/details?songId=${songId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log(response.data);
+      setSong(response.data.song);
+      setProgress(response.data.progress);
+      setLevels(response.data.levels);
+    };
 
-  if (!songData) {
+    if (songId && token) {
+      fetchSongDetails();
+    }
+  }, [songId, userId]);
+
+  if (!song) {
     return <div>Loading...</div>;
   }
+
+  const handleStepClick = (levelIndex: number, stepIndex: number) => {
+    const selectedLevel = levels[levelIndex];
+    const isCompleted = progress
+      ? progress.currentLevel > selectedLevel.level ||
+        (progress.currentLevel === selectedLevel.level &&
+          progress.currentStep > stepIndex + 1)
+      : false;
+
+    if (isCompleted) {
+      setModalTitle("Revise Step");
+      setModalMessage("Let's revise this step.");
+      setModalButtonLabel("Revise");
+      setModalButtonAction(() =>
+        router.push(
+          `/practice?songId=${songId}&level=${selectedLevel.level}&step=${
+            stepIndex + 1
+          }`
+        )
+      );
+      setIsModalOpen(true);
+    } else if (
+      progress &&
+      progress.currentLevel === selectedLevel.level &&
+      progress.currentStep === stepIndex + 1 &&
+      progress.currentPractice < 6
+    ) {
+      setModalTitle("Step In Progress");
+      setModalMessage(
+        `You have completed ${progress.currentPractice}/6 exercises for this step.`
+      );
+      setModalButtonLabel("Continue");
+      setModalButtonAction(() =>
+        router.push(
+          `/practice?songId=${songId}&level=${selectedLevel.level}&step=${
+            stepIndex + 1
+          }`
+        )
+      );
+      setIsModalOpen(true);
+    } else {
+      // Navigate to the practice page with selected level and step
+      router.push(
+        `/practice?songId=${songId}&level=${selectedLevel.level}&step=${
+          stepIndex + 1
+        }`
+      );
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
       <h1 className="text-3xl font-bold mb-4">
-        {songData.title} by {songData.artist}
+        {song.title} by {song.artist}
       </h1>
-      {currentLevel === null ? (
-        levels.map((level, index) => (
-          <button
-            key={index}
-            onClick={() => setCurrentLevel(index)}
-            className="block w-full text-left p-2 my-1 rounded bg-white shadow"
-          >
-            Level {index + 1}
-          </button>
-        ))
-      ) : (
-        <LevelComponent
-          level={levels[currentLevel]}
-          levelNumber={currentLevel + 1}
-          allVocabularies={songData.sentences.flatMap(
-            (sentence) => sentence.vocabularies
-          )}
-          allSentences={songData.sentences}
-          onComplete={() => setCurrentLevel(null)}
-        />
-      )}
+      {levels.map((level, levelIndex) => (
+        <div key={level.level}>
+          <h2 className="text-2xl font-bold mb-2">Level {level.level}</h2>
+          <div className="grid grid-cols-4 gap-4">
+            {Array.from({ length: level.maxStep }).map((_, stepIndex) => {
+              const isCompleted =
+                progress &&
+                (progress.currentLevel > level.level ||
+                  (progress.currentLevel === level.level &&
+                    progress.currentStep > stepIndex + 1));
+              const isDisabled = !isCompleted;
+
+              return (
+                <button
+                  key={stepIndex}
+                  onClick={() => handleStepClick(levelIndex, stepIndex)}
+                  className={`block w-full text-left p-2 my-1 rounded bg-white shadow ${
+                    isCompleted ? "bg-green-300" : ""
+                  } ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                  disabled={isDisabled}
+                >
+                  <div>Step {stepIndex + 1}</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={modalTitle}
+        message={modalMessage}
+        buttonLabel={modalButtonLabel}
+        buttonAction={modalButtonAction}
+      />
     </div>
   );
 };

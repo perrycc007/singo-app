@@ -20,6 +20,7 @@ export interface Sentence {
 }
 
 export interface Question {
+  Vocabulary: any;
   id: number;
   text: string;
   type: string; // translation, pronunciation, sentence formation, etc.

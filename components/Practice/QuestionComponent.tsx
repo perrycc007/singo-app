@@ -11,30 +11,72 @@ import VocabularyWordQuestion from "./VocabularyWordQuestion";
 
 interface QuestionComponentProps {
   question: Question;
+  vocabulary: any;
   onNext: () => void;
 }
 
 const QuestionComponent: React.FC<QuestionComponentProps> = ({
   question,
+  vocabulary,
   onNext,
 }) => {
   switch (question.type) {
     case "sentence-formation-translation":
-      return <TranslationQuestion question={question} onNext={onNext} />;
+      return (
+        <TranslationQuestion
+          question={question}
+          vocabulary={vocabulary}
+          onNext={onNext}
+        />
+      );
     case "sentence-formation-meaning":
-      return <MeaningQuestion question={question} onNext={onNext} />;
+      return (
+        <MeaningQuestion
+          question={question}
+          vocabulary={vocabulary}
+          onNext={onNext}
+        />
+      );
     case "sentence-formation":
-      return <SentenceFormationQuestion question={question} onNext={onNext} />;
+      return (
+        <SentenceFormationQuestion
+          question={question}
+          vocabulary={vocabulary}
+          onNext={onNext}
+        />
+      );
     case "vocabulary-meaning":
-      return <VocabularyMeaningQuestion question={question} onNext={onNext} />;
+      return (
+        <VocabularyMeaningQuestion
+          question={question}
+          vocabulary={vocabulary}
+          onNext={onNext}
+        />
+      );
     case "vocabulary-pronunciation":
       return (
-        <VocabularyPronunciationQuestion question={question} onNext={onNext} />
+        <VocabularyPronunciationQuestion
+          question={question}
+          vocabulary={vocabulary}
+          onNext={onNext}
+        />
       );
     case "vocabulary-audio":
-      return <VocabularyAudioQuestion question={question} onNext={onNext} />;
+      return (
+        <VocabularyAudioQuestion
+          question={question}
+          vocabulary={vocabulary}
+          onNext={onNext}
+        />
+      );
     case "vocabulary-word":
-      return <VocabularyWordQuestion question={question} onNext={onNext} />;
+      return (
+        <VocabularyWordQuestion
+          question={question}
+          vocabulary={vocabulary}
+          onNext={onNext}
+        />
+      );
     default:
       return null;
   }

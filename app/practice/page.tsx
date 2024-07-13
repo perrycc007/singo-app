@@ -11,7 +11,7 @@ const Practice: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const router = useRouter();
-
+  const [vocab, setVocab] = useState();
   const searchParams = useSearchParams();
   const songId = searchParams.get("songId");
   const level = searchParams.get("level");
@@ -19,10 +19,13 @@ const Practice: React.FC = () => {
 
   useEffect(() => {
     const fetchQuestions = async () => {
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/adaptive-learning/play-step?songId=${songId}&level=${level}&step=${step}&userId=${userId}`
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/learning/get-practice`,
+        { songId: songId, level: level, step: step }
       );
-      setQuestions(response.data);
+      console.log(response.data.questions);
+      setQuestions(response.data.questions);
+      setVocab(response.data.vocabulary);
     };
 
     if (songId && level && step) {
@@ -40,6 +43,7 @@ const Practice: React.FC = () => {
       {questions.length > 0 && currentQuestionIndex < questions.length ? (
         <QuestionComponent
           question={questions[currentQuestionIndex]}
+          vocabulary={vocab}
           onNext={handleNextQuestion}
         />
       ) : (

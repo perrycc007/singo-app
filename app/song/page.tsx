@@ -57,7 +57,7 @@ const SongPage: React.FC = () => {
     const isCompleted = progress
       ? progress.currentLevel > selectedLevel.level ||
         (progress.currentLevel === selectedLevel.level &&
-          progress.currentStep > stepIndex + 1)
+          progress.currentStep >= stepIndex + 1)
       : false;
 
     if (isCompleted) {
@@ -114,8 +114,8 @@ const SongPage: React.FC = () => {
               const isCompleted =
                 progress &&
                 (progress.currentLevel > level.level ||
-                  (progress.currentLevel === level.level &&
-                    progress.currentStep > stepIndex + 1));
+                  (progress.currentLevel == level.level &&
+                    progress.currentStep >= stepIndex + 1));
               const isDisabled = !isCompleted;
 
               return (

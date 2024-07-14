@@ -2,12 +2,12 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-
+import { getToken } from "@/utils/auth";
 const Home: React.FC = () => {
   const [lyrics, setLyrics] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-
+  const token = getToken();
   const handleLyricsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setLyrics(e.target.value);
   };
@@ -20,6 +20,9 @@ const Home: React.FC = () => {
     );
     router.push("/dashboard");
   };
+  const toLoginPage = () =>{
+    router.push("/login");
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -33,7 +36,7 @@ const Home: React.FC = () => {
           onChange={handleLyricsChange}
           placeholder="Enter Japanese lyrics"
         />
-        {!loading && (
+        {token && !loading && (
           <button
             className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md"
             onClick={handleGenerateData}
@@ -41,6 +44,7 @@ const Home: React.FC = () => {
             Generate Data
           </button>
         )}
+        {!token && <button onClick={toLoginPage}>Login first</button>}
       </div>
     </div>
   );

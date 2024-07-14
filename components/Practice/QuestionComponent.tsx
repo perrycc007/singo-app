@@ -1,13 +1,8 @@
 // components/Practice/QuestionComponent.tsx
 import React from "react";
 import { Question } from "@/types";
-import TranslationQuestion from "./TranslationQuestion";
-import MeaningQuestion from "./MeaningQuestion";
 import SentenceFormationQuestion from "./SentenceFormationQuestion";
-import VocabularyMeaningQuestion from "./VocabularyMeaningQuestion";
-import VocabularyPronunciationQuestion from "./VocabularyPronunciationQuestion";
-import VocabularyAudioQuestion from "./VocabularyAudioQuestion";
-import VocabularyWordQuestion from "./VocabularyWordQuestion";
+import VocabularyQuestion from "./VocabularyQuestion";
 
 interface QuestionComponentProps {
   question: Question;
@@ -15,6 +10,19 @@ interface QuestionComponentProps {
   onCheck: (questionId: number, isCorrect: boolean) => void;
   onNext: () => void;
 }
+
+const componentMapping: { [key: string]: React.FC<any> } = {
+  "sentence-formation-reading-meaning": SentenceFormationQuestion,
+  "sentence-formation-reading-word": SentenceFormationQuestion,
+  "sentence-formation-audio-word": SentenceFormationQuestion,
+  "sentence-formation-audio-meaning": SentenceFormationQuestion,
+  "vocabulary-reading-meaning": VocabularyQuestion,
+  "vocabulary-reading-pronunciation": VocabularyQuestion,
+  "vocabulary-reading-word": VocabularyQuestion,
+  "vocabulary-audio-meaning": VocabularyQuestion,
+  "vocabulary-audio-pronunciation": VocabularyQuestion,
+  "vocabulary-audio-word": VocabularyQuestion,
+};
 
 const QuestionComponent: React.FC<QuestionComponentProps> = ({
   question,
@@ -26,73 +34,16 @@ const QuestionComponent: React.FC<QuestionComponentProps> = ({
     onCheck(question.id, isCorrect);
   };
 
-  switch (question.type) {
-    case "sentence-formation-translation":
-      return (
-        <TranslationQuestion
-          question={question}
-          vocabulary={vocabulary}
-          onCheck={handleCheck}
-          onNext={onNext}
-        />
-      );
-    case "sentence-formation-meaning":
-      return (
-        <MeaningQuestion
-          question={question}
-          vocabulary={vocabulary}
-          onCheck={handleCheck}
-          onNext={onNext}
-        />
-      );
-    case "sentence-formation":
-      return (
-        <SentenceFormationQuestion
-          question={question}
-          vocabulary={vocabulary}
-          onCheck={handleCheck}
-          onNext={onNext}
-        />
-      );
-    case "vocabulary-meaning":
-      return (
-        <VocabularyMeaningQuestion
-          question={question}
-          vocabulary={vocabulary}
-          onCheck={handleCheck}
-          onNext={onNext}
-        />
-      );
-    case "vocabulary-pronunciation":
-      return (
-        <VocabularyPronunciationQuestion
-          question={question}
-          vocabulary={vocabulary}
-          onCheck={handleCheck}
-          onNext={onNext}
-        />
-      );
-    case "vocabulary-audio":
-      return (
-        <VocabularyAudioQuestion
-          question={question}
-          vocabulary={vocabulary}
-          onCheck={handleCheck}
-          onNext={onNext}
-        />
-      );
-    case "vocabulary-word":
-      return (
-        <VocabularyWordQuestion
-          question={question}
-          vocabulary={vocabulary}
-          onCheck={handleCheck}
-          onNext={onNext}
-        />
-      );
-    default:
-      return null;
-  }
+  const Component = componentMapping[question.type];
+
+  return Component ? (
+    <Component
+      question={question}
+      vocabulary={vocabulary}
+      onCheck={handleCheck}
+      onNext={onNext}
+    />
+  ) : null;
 };
 
 export default QuestionComponent;

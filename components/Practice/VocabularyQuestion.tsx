@@ -85,6 +85,7 @@ const VocabularyQuestion: React.FC<VocabularyQuestionProps> = ({
     setShowNextButton(false);
     setIsCorrect(null);
     setSelectedOption("");
+    setIsChecked(false);
     onNext();
   };
 

@@ -30,6 +30,7 @@ const Practice: React.FC = () => {
   const songId = searchParams.get("songId");
   const level = searchParams.get("level");
   const step = searchParams.get("step");
+  const practice = searchParams.get("practice");
   const router = useRouter();
 
   useEffect(() => {
@@ -83,6 +84,7 @@ const Practice: React.FC = () => {
           ...prevResults,
           {
             questionId: questionId,
+            // wrongFrequency: isCorrect ? 0 : 1,
             wrongFrequency: isCorrect ? 0 : 1,
             frequency: 1,
             lastEncounter: now,
@@ -108,8 +110,19 @@ const Practice: React.FC = () => {
       setWrongQuestions((prevWrongQuestions) =>
         prevWrongQuestions.filter((question) => question.id !== questionId)
       );
-      if (wrongQuestions.length == 1) {
+      console.log(
+        currentQuestionIndex,
+        questions.length,
+        wrongQuestions.filter((question) => question.id !== questionId).length
+      );
+      if (
+        currentQuestionIndex + 1 >= questions.length &&
+        wrongQuestions.filter((question) => question.id !== questionId)
+          .length == 0
+      ) {
         setIsComplete(true);
+        handleCompletePractice();
+        router.push("/dashboard");
       }
     }
   };
@@ -136,10 +149,11 @@ const Practice: React.FC = () => {
         songId,
         level,
         step,
+        practice,
         questionResults,
       }
     );
-    // router.push("/practice-complete");
+    router.push("/dashboard");
   };
 
   const progressPercentage =
@@ -162,7 +176,8 @@ const Practice: React.FC = () => {
           style={{ width: `${progressPercentage}%` }}
         ></div>
       </div>
-      {questions.length > 0 && currentQuestionIndex < questions.length ? (
+      {questions.length > 0 &&
+      currentQuestionIndex <= questions.length + wrongQuestions.length ? (
         <QuestionComponent
           question={questions[currentQuestionIndex]}
           vocabulary={vocab}
@@ -179,12 +194,6 @@ const Practice: React.FC = () => {
       ) : (
         ""
       )}
-      <button
-        onClick={handleCompletePractice}
-        className="mt-2 p-2 bg-green-500 text-white rounded"
-      >
-        test
-      </button>
     </div>
   );
 };

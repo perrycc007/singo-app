@@ -15,6 +15,7 @@ const SongPage: React.FC = () => {
   const [levels, setLevels] = useState<{ level: number; maxStep: number }[]>(
     []
   );
+  const [currentPractice, setCurrentPractice] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
@@ -41,6 +42,7 @@ const SongPage: React.FC = () => {
       setSong(response.data.song);
       setProgress(response.data.progress);
       setLevels(response.data.levels);
+      setCurrentPractice(response.data.currentPractice);
     };
 
     if (songId && token) {
